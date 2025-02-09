@@ -3,6 +3,7 @@ Module.register("MMM-BirthdayCalendarCountdown", {
     defaults: {
         updateInterval: 1000,       // Update the DOM every second (for live countdowns)
         countdownStartDays: 7,      // Show countdown if event is within 7 days from now
+        upcomingWindowDays: 30,     // Only display birthdays occurring within 30 days from now
         maxDisplay: 5,              // Maximum number of matching events to display
         searchKeyword: "birthday"   // Keyword to filter calendar events (case-insensitive)
     },
@@ -12,7 +13,7 @@ Module.register("MMM-BirthdayCalendarCountdown", {
         // Array to store events that match the search keyword.
         this.filteredEvents = [];
 
-        // Refresh the DOM periodically so countdown timers stay current.
+        // Refresh the DOM periodically so countdown timers remain current.
         var self = this;
         setInterval(function () {
             self.updateDom();
@@ -21,7 +22,7 @@ Module.register("MMM-BirthdayCalendarCountdown", {
 
     /**
      * Receives notifications from other modules.
-     * Here we expect a "CALENDAR_EVENTS" notification with an array of event objects.
+     * We expect a "CALENDAR_EVENTS" notification with an array of event objects.
      */
     notificationReceived: function (notification, payload, sender) {
         if (notification === "CALENDAR_EVENTS") {
@@ -44,15 +45,20 @@ Module.register("MMM-BirthdayCalendarCountdown", {
     getDom: function () {
         var wrapper = document.createElement("div");
         var now = new Date();
+        var oneDayMs = 24 * 60 * 60 * 1000;
+        var windowMs = this.config.upcomingWindowDays * oneDayMs;
 
-        // Filter out events that have already occurred.
+        // Filter out events that have already occurred or are outside the display window.
         var upcomingEvents = this.filteredEvents.filter(event => {
-            return new Date(event.startDate) >= now;
+            var eventDate = new Date(event.startDate);
+            return eventDate >= now && (eventDate - now <= windowMs);
         });
 
         // If no matching events are available, show a message.
         if (upcomingEvents.length === 0) {
-            wrapper.innerHTML = `<div class="no-events">No upcoming events containing "${this.config.searchKeyword}".</div>`;
+            wrapper.innerHTML = `<div class="no-events">
+                                    No upcoming events containing "${this.config.searchKeyword}" within ${this.config.upcomingWindowDays} days.
+                                 </div>`;
             return wrapper;
         }
 
@@ -82,7 +88,6 @@ Module.register("MMM-BirthdayCalendarCountdown", {
 
             // Calculate the time difference between the event and now.
             var diff = eventDate - now;
-            var oneDayMs = 24 * 60 * 60 * 1000;
             // If the event is in the future and within the countdown window, add a countdown.
             if (diff > 0 && diff <= this.config.countdownStartDays * oneDayMs) {
                 var countdownDiv = document.createElement("div");
