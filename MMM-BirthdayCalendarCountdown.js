@@ -45,14 +45,19 @@ Module.register("MMM-BirthdayCalendarCountdown", {
         var wrapper = document.createElement("div");
         var now = new Date();
 
+        // Filter out events that have already occurred.
+        var upcomingEvents = this.filteredEvents.filter(event => {
+            return new Date(event.startDate) >= now;
+        });
+
         // If no matching events are available, show a message.
-        if (this.filteredEvents.length === 0) {
+        if (upcomingEvents.length === 0) {
             wrapper.innerHTML = `<div class="no-events">No upcoming events containing "${this.config.searchKeyword}".</div>`;
             return wrapper;
         }
 
         // Limit the number of events displayed.
-        var eventsToShow = this.filteredEvents.slice(0, this.config.maxDisplay);
+        var eventsToShow = upcomingEvents.slice(0, this.config.maxDisplay);
 
         eventsToShow.forEach(event => {
             var eventDiv = document.createElement("div");
