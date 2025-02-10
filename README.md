@@ -5,6 +5,9 @@
 
 ---
 
+<img width="358" alt="image" src="https://github.com/user-attachments/assets/e8392bfe-a92e-49c1-93d2-aaf930ab94be" />
+
+
 ## Features 🌟
 
 - **Live Countdown ⏰:**  
